@@ -8,8 +8,8 @@ export default async function handler(req, res) {
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const GITHUB_TOKEN = process.env.MY_HIDDEN_GITHUB_TOKEN;
-  const getFileUrl = `https://api.github.com/repos/${process.env.GH_USER}/${process.env.GH_REPO}/contents/data.json`;
+  const GITHUB_TOKEN = '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';
+  const getFileUrl = 'https://api.github.com/repos/Tharak37/MyInverterShop/contents/data.json';
 
   // Helper to fetch and decode data.json from Git
   async function getGitData() {
