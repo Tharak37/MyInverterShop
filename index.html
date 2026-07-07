@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Surya Electronics - Service Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 font-sans text-gray-800 antialiased min-h-screen flex flex-col justify-between">
+
+  <!-- Header / Shop Identity -->
+  <header class="bg-blue-600 text-white shadow-md">
+    <div class="max-w-4xl mx-auto px-4 py-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+      <div class="text-center sm:text-left">
+        <h1 class="text-2xl font-bold tracking-wide flex items-center justify-center sm:justify-start gap-2">
+          ⚡ Surya Electronics
+        </h1>
+        <p class="text-blue-100 text-sm mt-1">Inverter Sales, Service & Digital Tracking Portal</p>
+      </div>
+      <div class="text-center sm:text-right text-sm pt-2 sm:pt-0">
+        <p class="font-semibold">📍 Main Road, Mandapeta</p>
+        <p class="text-blue-200">📞 Support: +91 76618 29283</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- Content Workspace Container -->
+  <main class="max-w-4xl w-full mx-auto px-4 py-8 flex-grow">
+    
+    <!-- Workspace Selection Control Tabs -->
+    <div class="flex justify-center space-x-4 mb-6">
+      <button id="tabCustomer" onclick="switchView('customer')" class="px-6 py-2 rounded-full font-medium transition bg-blue-600 text-white shadow">
+        Customer Request
+      </button>
+      <button id="tabAdmin" onclick="openAdminModal()" class="px-6 py-2 rounded-full font-medium transition bg-gray-200 text-gray-700 hover:bg-gray-300">
+        🛠️ Admin View
+      </button>
+    </div>
+
+    <!-- CUSTOMER ENTRY FORM SECTION -->
+    <section id="formSection" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8 max-w-xl mx-auto">
+      <h2 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">📝 New Service Request</h2>
+      
+      <form id="requestForm" onsubmit="handleFormSubmit(event)" class="space-y-5">
+        <div id="adminToggleContainer" class="hidden bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <input type="checkbox" id="isImmediate" onchange="updateExpectedTime()" class="h-5 w-5 text-amber-600 rounded border-gray-300 focus:ring-amber-500">
+            <label for="isImmediate" class="text-sm font-semibold text-amber-800 cursor-pointer">⚡ Mark as Immediate Service</label>
+          </div>
+          <span class="text-xs bg-amber-200 text-amber-800 font-bold px-2 py-1 rounded">ADMIN</span>
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1">Customer Name *</label>
+          <input type="text" id="customerName" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1">Mobile Number *</label>
+          <input type="tel" id="customerPhone" required pattern="[0-9]{10}" placeholder="10-digit mobile" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1">Device Model / Issue *</label>
+          <textarea id="deviceIssue" required rows="3" placeholder="e.g., Microtek 900VA, completely dead / backup problem" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"></textarea>
+        </div>
+
+        <div class="bg-gray-50 rounded-xl p-4 border border-gray-200">
+          <div class="text-xs font-semibold uppercase tracking-wider text-gray-500">Estimated Ready Time</div>
+          <div id="expectedTimeDisplay" class="text-lg font-bold text-gray-800 mt-1">Calculating...</div>
+        </div>
+
+        <button type="submit" id="submitBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl shadow-md transition transform active:scale-[0.98]">
+          Submit Request
+        </button>
+      </form>
+    </section>
+
+    <!-- ADMIN OPERATIONS CONTROL PANEL -->
+    <section id="adminSection" class="hidden bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 border-b border-gray-100 pb-4">
+        <div>
+          <h2 class="text-xl font-bold text-gray-900">Active Service Dashboard</h2>
+          <p class="text-sm text-gray-500 mt-0.5">Surya Electronics Workspace Panel</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-3">
+          <!-- Real-Time Phone Lookup Filter Field -->
+          <input type="tel" id="searchPhoneFilter" oninput="filterTableRecords()" placeholder="🔎 Search by phone number..." class="px-4 py-2 text-sm border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 max-w-xs">
+          <button onclick="logoutAdmin()" class="bg-red-50 hover:bg-red-100 text-red-600 font-medium px-4 py-2 rounded-xl text-sm transition">
+            Logout Admin
+          </button>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-gray-50 text-gray-500 text-xs font-semibold uppercase tracking-wider border-b border-gray-200">
+              <th class="p-4">Customer Details</th>
+              <th class="p-4">Device / Problem</th>
+              <th class="p-4">Target Resolution</th>
+              <th class="p-4 text-center">Manage Status</th>
+            </tr>
+          </thead>
+          <tbody id="adminTableBody" class="divide-y divide-gray-100 text-sm">
+            <!-- Filtered engine injection target -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="bg-gray-900 text-gray-400 text-xs py-6 text-center">
+    <p>© 2026 Surya Electronics, Mandapeta. All rights reserved.</p>
+  </footer>
+
+  <!-- Admin Credentials Verification Entry Prompt Modal -->
+  <div id="authModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl">
+      <h3 class="text-lg font-bold text-gray-900 mb-2">Admin Authentication</h3>
+      <p class="text-sm text-gray-500 mb-4">Please enter verification credentials to access Surya Electronics logs.</p>
+      
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">Phone Number</label>
+          <input type="tel" id="adminPhone" placeholder="Enter phone" class="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">Static PIN</label>
+          <input type="password" id="adminPin" placeholder="••••" class="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none">
+        </div>
+        <div id="authError" class="text-xs text-red-600 font-semibold hidden">❌ Invalid Phone or Passcode.</div>
+        
+        <div class="flex space-x-3 pt-2">
+          <button onclick="closeAdminModal()" class="w-1/2 border border-gray-300 text-gray-700 py-2 rounded-xl text-sm font-medium hover:bg-gray-50">Cancel</button>
+          <button onclick="verifyAdminCredentials()" class="w-1/2 bg-blue-600 text-white py-2 rounded-xl text-sm font-medium hover:bg-blue-700 shadow-md">Verify</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const BACKEND_URL = `${window.location.origin}/api/submit`;
+    
+    // Updated Config Properties matching user targets
+    const ADMIN_CREDENTIALS = { phone: "7661829283", pin: "0101" };
+    let cachedJobsList = []; 
+    let isAdminAuthenticated = false;
+
+    window.onload = function() {
+      updateExpectedTime();
+      setInterval(updateExpectedTime, 30000); 
+    };
+
+    function updateExpectedTime() {
+      const now = new Date();
+      let hoursToAdd = (isAdminAuthenticated && document.getElementById('isImmediate').checked) ? 1 : 4;
+      now.setHours(now.getHours() + hoursToAdd);
+
+      const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: true };
+      const dateOptions = { month: 'short', day: 'numeric' };
+      document.getElementById('expectedTimeDisplay').innerText = `${now.toLocaleTimeString([], timeOptions)} (${now.toLocaleDateString([], dateOptions)})`;
+    }
+
+    function switchView(target) {
+      const tabCustomer = document.getElementById('tabCustomer');
+      const tabAdmin = document.getElementById('tabAdmin');
+      const formSection = document.getElementById('formSection');
+      const adminSection = document.getElementById('adminSection');
+
+      if (target === 'customer') {
+        formSection.classList.remove('hidden');
+        adminSection.classList.add('hidden');
+        tabCustomer.className = "px-6 py-2 rounded-full font-medium transition bg-blue-600 text-white shadow";
+        tabAdmin.className = `px-6 py-2 rounded-full font-medium transition ${isAdminAuthenticated ? 'bg-amber-100 text-amber-800' : 'bg-gray-200 text-gray-700'}`;
+      } else if (target === 'admin' && isAdminAuthenticated) {
+        formSection.classList.add('hidden');
+        adminSection.classList.remove('hidden');
+        tabCustomer.className = "px-6 py-2 rounded-full font-medium transition bg-gray-200 text-gray-700";
+        tabAdmin.className = "px-6 py-2 rounded-full font-medium transition bg-amber-600 text-white shadow";
+        fetchAndCacheRecords();
+      }
+    }
+
+    function openAdminModal() {
+      if (isAdminAuthenticated) { switchView('admin'); } 
+      else {
+        document.getElementById('authModal').classList.remove('hidden');
+        document.getElementById('authModal').classList.add('flex');
+      }
+    }
+
+    function closeAdminModal() {
+      document.getElementById('authModal').classList.remove('flex');
+      document.getElementById('authModal').classList.add('hidden');
+      document.getElementById('authError').classList.add('hidden');
+    }
+
+    function verifyAdminCredentials() {
+      const phoneInput = document.getElementById('adminPhone').value.trim();
+      const pinInput = document.getElementById('adminPin').value.trim();
+
+      if (phoneInput === ADMIN_CREDENTIALS.phone && pinInput === ADMIN_CREDENTIALS.pin) {
+        isAdminAuthenticated = true;
+        closeAdminModal();
+        document.getElementById('adminToggleContainer').classList.remove('hidden');
+        document.getElementById('tabAdmin').innerText = "⚡ Admin Dashboard";
+        updateExpectedTime();
+        switchView('admin');
+      } else {
+        document.getElementById('authError').classList.remove('hidden');
+      }
+    }
+
+    function logoutAdmin() {
+      isAdminAuthenticated = false;
+      document.getElementById('adminToggleContainer').classList.add('hidden');
+      document.getElementById('isImmediate').checked = false;
+      document.getElementById('tabAdmin').innerText = "🛠️ Admin View";
+      switchView('customer');
+    }
+
+    async function handleFormSubmit(e) {
+      e.preventDefault();
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.innerText = "Saving Request Safely...";
+
+      const newRecord = {
+        id: "INV-" + Date.now().toString().slice(-6),
+        name: document.getElementById('customerName').value.trim(),
+        phone: document.getElementById('customerPhone').value.trim(),
+        issue: document.getElementById('deviceIssue').value.trim(),
+        targetTime: document.getElementById('expectedTimeDisplay').innerText,
+        timestamp: new Date().toLocaleString(),
+        status: "Queued"
+      };
+
+      try {
+        const response = await fetch(BACKEND_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(newRecord)
+        });
+
+        if (response.ok) {
+          alert(`✅ Request Saved directly to Git Repo!\nJob ID: ${newRecord.id}`);
+          document.getElementById('requestForm').reset();
+          updateExpectedTime();
+        } else {
+          alert("⚠️ Server data push failure. Check API routing endpoints.");
+        }
+      } catch (err) {
+        alert("❌ Error communicating with the Proxy layer.");
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = "Submit Request";
+      }
+    }
+
+    // Fetches live array records from cloud storage
+    async function fetchAndCacheRecords() {
+      const tbody = document.getElementById('adminTableBody');
+      tbody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-gray-500 animate-pulse">Loading dataset arrays from Git...</td></tr>`;
+
+      try {
+        const response = await fetch(BACKEND_URL);
+        if (!response.ok) throw new Error();
+        cachedJobsList = await response.json();
+        renderFilteredRows(cachedJobsList);
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-red-500 font-semibold">❌ Failed to sync logs from GitHub repository.</td></tr>`;
+      }
+    }
+
+    // Evaluates input search variables to isolate matching phone string elements
+    function filterTableRecords() {
+      const filterValue = document.getElementById('searchPhoneFilter').value.trim();
+      if (!filterValue) {
+        renderFilteredRows(cachedJobsList);
+        return;
+      }
+      const filtered = cachedJobsList.filter(job => job.phone.includes(filterValue));
+      renderFilteredRows(filtered);
+    }
+
+    // Commits immediate inline state transformations to the tracking layer
+    async function handleStatusChange(jobId, element) {
+      const originalValue = element.getAttribute('data-current');
+      const newStatus = element.value;
+      
+      element.disabled = true;
+      
+      try {
+        const response = await fetch(BACKEND_URL, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ jobId, newStatus })
+        });
+
+        if (response.ok) {
+          element.setAttribute('data-current', newStatus);
+          // Sync internal state cache matrix arrays
+          const idx = cachedJobsList.findIndex(j => j.id === jobId);
+          if (idx !== -1) cachedJobsList[idx].status = newStatus;
+        } else {
+          alert("❌ Failed to save status change back to Git repo.");
+          element.value = originalValue;
+        }
+      } catch (err) {
+        alert("❌ Connection loss occurred updating server database.");
+        element.value = originalValue;
+      } finally {
+        element.disabled = false;
+      }
+    }
+
+    // Direct interface painter matrix parsing function
+    function renderFilteredRows(dataList) {
+      const tbody = document.getElementById('adminTableBody');
+      
+      if (!dataList || dataList.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-gray-400 italic">No matching active records found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = dataList.map(job => {
+        const statuses = ["Queued", "In Progress", "Ready", "Delivered"];
+        const selectOptions = statuses.map(s => `<option value="${s}" ${job.status === s ? 'selected' : ''}>${s}</option>`).join('');
+        
+        return `
+          <tr class="hover:bg-gray-50 transition border-b border-gray-100">
+            <td class="p-4 font-medium text-gray-900">
+              <div class="font-bold text-xs text-blue-600 mb-0.5">${job.id}</div>
+              <div>${job.name}</div>
+              <div class="text-xs text-gray-500 font-semibold">${job.phone}</div>
+            </td>
+            <td class="p-4 text-gray-600 max-w-xs break-words">${job.issue}</td>
+            <td class="p-4 text-gray-700 font-medium">
+              <div>${job.targetTime}</div>
+              <div class="text-[10px] text-gray-400 font-normal">Logged: ${job.timestamp}</div>
+            </td>
+            <td class="p-4 text-center">
+              <select data-current="${job.status}" onchange="handleStatusChange('${job.id}', this)" class="px-2 py-1 text-xs font-medium rounded-lg border border-gray-300 bg-white text-gray-700 focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer disabled:opacity-50">
+                ${selectOptions}
+              </select>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+  </script>
+</body>
+</html>
