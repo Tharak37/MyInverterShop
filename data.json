@@ -1,1 +1,11 @@
-[]
+[
+  {
+    "id": "INV-360233",
+    "name": "Test Customer",
+    "phone": "9998887776",
+    "issue": "Round-trip validation job",
+    "targetTime": "Test target time",
+    "timestamp": "4:52:40 pm",
+    "status": "Queued"
+  }
+]
